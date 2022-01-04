@@ -19,7 +19,9 @@ public class Test {
 		encodeData(encoded);
 	}
 
-	public static void encodeData(String encoded) {
+	public static JSONObject encodeData(String encoded) {
+
+		JSONObject outputJsonObject = null;
 
 		Base64 base64 = new Base64();
 
@@ -45,36 +47,45 @@ public class Test {
 							output.append(line);
 							System.out.println(output.toString());
 						}
-						System.out.println("Message : "+output.toString());
-						
-						try {
-						     JSONObject jsonObject = new JSONObject(output.toString());
-						     System.out.println(jsonObject.get("logEvents"));
-						     System.out.println("JSONObject "+jsonObject.toString());
-						     
-						     JSONArray arr = jsonObject.getJSONArray("logEvents");
+						System.out.println("Message : " + output.toString());
 
-						     for (int i = 0; i < arr.length(); i++) {
-						         System.out.println("JSON Message : "+arr.getJSONObject(i).getString("message"));					         
-						        
-						         JSONObject jsonObjects = new JSONObject("{"+arr.getJSONObject(i).getString("message")+"}");
-						         System.out.println("Before IF "+jsonObjects.toString());
-						         if (jsonObjects.has("body")) {
-						        	   String jsonBody = jsonObjects.getString("body");
-						        	   System.out.println("Final Json Body : "+jsonBody);
-						        }
-						         
-						     }
-						}catch (JSONException err){
-						    System.out.println("Error "+err.toString());
+						try {
+							JSONObject jsonObject = new JSONObject(output.toString());
+							System.out.println(jsonObject.get("logEvents"));
+							System.out.println("JSONObject " + jsonObject.toString());
+
+							JSONArray arr = jsonObject.getJSONArray("logEvents");
+
+							for (int i = 0; i < arr.length(); i++) {
+								System.out.println("JSON Message : " + arr.getJSONObject(i).getString("message"));
+
+								StringBuilder sb = new StringBuilder();
+								sb.append("{");
+								if (arr.getJSONObject(i).getString("message") != null)
+									sb.append(arr.getJSONObject(i).getString("message"));
+								sb.append("}");
+
+								JSONObject jsonObjects = new JSONObject(
+										"{" + arr.getJSONObject(i).getString("message") + "}");
+								// System.out.println("Before IF " + jsonObjects.toString());
+								if (jsonObjects.has("body")) {
+									String jsonBody = jsonObjects.getString("body");
+									System.out.println("Final Json Body : " + jsonBody);
+									outputJsonObject = new JSONObject(jsonBody);
+								}
+
+							}
+						} catch (JSONException err) {
+							System.out.println("Error " + err.toString());
 						}
 					}
-					
+
 				}
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to unzip content", e);
 		}
+		return outputJsonObject;
 	}
 
 	public static boolean isZipped(final byte[] compressed) {
